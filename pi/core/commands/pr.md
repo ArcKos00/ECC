@@ -103,33 +103,60 @@ If rebase conflicts occur, stop and inform the user.
 
 ### With Template
 
-If a PR template was found in Phase 2, fill in each section using the commit and file analysis. Preserve all template sections — leave sections as "N/A" if not applicable rather than removing them.
+If a PR template was found in Phase 2, fill in each section using the commit and file analysis. Preserve all template sections — leave sections as "N/A" if not applicable rather than removing them. Where the template has room for it, still lead with the Summary visual and include Evidence and Merge Danger as described below.
 
 ### Without Template
 
-Use this default format:
+Use this default format. Skip preambles, keep prose brief, and use the repo's domain language (`GLOSSARY.md` if it exists):
 
 ```markdown
 ## Summary
 
-<1-2 sentence description of what this PR does and why>
+<1-2 sentences: what this PR does and why>
 
-## Changes
+<the smallest visual that makes the change clear: diff-sketch, call tree, file tree, pseudocode or Mermaid>
 
-<bulleted list of changes grouped by area>
+## Evidence
 
-## Files Changed
+- **Before:** <screenshot / output / failing test run>
+  **After:** <screenshot / output / passing test run>
 
-<table or list of changed files with change type: Added/Modified/Deleted>
+## Merge Danger
 
-## Testing
+**Door:** <one-way or two-way>  <optional: why>
+**Blast Radius:** <one word>  <optional: what could break, for whom>
 
-<description of how changes were tested, or "Needs testing">
+## Related
 
-## Related Issues
-
-<linked issues with Closes/Fixes/Relates to #N, or "None">
+<plans/PRDs from Phase 2, issues with Closes/Fixes #N; omit the section if none>
 ```
+
+Add a short `## Changes` list (grouped by area) only when the PR spans several areas that the Summary visual can't show. Don't list changed files: GitHub already does.
+
+#### Summary visual
+
+Pick the smallest view that makes the key point clear; usually one, sometimes two, never all:
+
+- **Logic or an algorithm** → pseudocode.
+- **Runtime control flow** → a call tree (`submitForm` → `createSession` → `persistPrompt`).
+- **UI structure** → a component tree with the state and module boundaries that matter.
+- **File responsibility or a broad refactor** → a shallow file tree with one-line comments.
+- **Interaction or data flow between components/services** → a Mermaid sequence or flow diagram.
+- **What changes inside an existing shape** → a ```` ```diff ```` sketch of that shape (call tree, file tree, component tree, state flow) with `+`/`-` lines, not the raw code diff.
+- **Mostly new code, or a copyable target shape** → the whole block.
+
+Place each visual next to the short text it supports, and keep only the calls, files, props, states and boundaries needed to understand the change.
+
+#### Evidence
+
+Show a concrete before and after. Screenshots are best when the change is visual and the environment can take them. Otherwise use execution evidence: the exact test that failed and now passes, or command output. If nothing was verified, say so plainly ("Not verified: …") instead of inventing evidence.
+
+#### Merge Danger
+
+- **Door**: a two-way door is cheap to roll back (revert the commit and redeploy). A one-way door can't be walked back: destructive migrations, dropped data or tables, published APIs/contracts, sent messages, rotated secrets.
+- **Blast radius**: who or what feels it if this goes wrong, in one word (e.g. `none`, `ui`, `api-consumers`, `database`, `auth`, `all-services`), plus a line of ramifications when not obvious.
+
+_(Summary/Evidence/Merge Danger format adapted from Matt Pocock's `pr` skill, whose visual menu credits Dex Horthy's `show-me`.)_
 
 ### Create the PR
 
